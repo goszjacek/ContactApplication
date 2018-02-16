@@ -1,7 +1,9 @@
 package com.example.goszj.contactsapplication;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Rect;
+import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -19,7 +21,8 @@ public class MainActivity extends AppCompatActivity {
     RecyclerView.Adapter rvAdapter;
     RecyclerView.LayoutManager rvLayout;
     ContactsItemListener rvListener;
-    ArrayList<PojoContact> dataSet = new ArrayList<PojoContact>();
+    ArrayList<PojoContact> dataSet = new ArrayList<>();
+    ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,4 +83,27 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
+    private class GetContacts extends AsyncTask<Void,Void,Void>{
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            return null;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            progressDialog = new ProgressDialog(MainActivity.this);
+            progressDialog.setMessage("Wait for Parsing...");
+            progressDialog.setCancelable(false);
+            progressDialog.show();
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+        }
+    }
+
 }
