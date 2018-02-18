@@ -1,5 +1,7 @@
 package com.example.goszj.contactsapplication;
 
+import android.util.Log;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -18,10 +20,12 @@ public class HttpHandler {
     public String makeServiceCall(String knownUrl){
         String response=null;
         try{
+            Log.d("makeServiceCall","url");
             URL url = new URL(knownUrl);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
             InputStream inputStream = new BufferedInputStream(connection.getInputStream());
+            Log.d("makeServiceCall","convert");
             response=convertStreamToString(inputStream);
         }catch(MalformedURLException e){
             e.printStackTrace();

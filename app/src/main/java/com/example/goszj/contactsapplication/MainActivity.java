@@ -13,6 +13,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,32 +28,19 @@ public class MainActivity extends AppCompatActivity {
     ContactsItemListener rvListener;
     ArrayList<PojoContact> dataSet = new ArrayList<>();
     ProgressDialog progressDialog;
+    private static final String url = "https://jaksiemaszcare-training-mobile.herokuapp.com/api";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        dataSet.add(new PojoContact("Anna Malinka","123456789",R.drawable.sharapova));
-        dataSet.add(new PojoContact("Stefania Mazdek","123456789",R.drawable.sharapova));
-        dataSet.add(new PojoContact("Eugenia Takze","123456789",R.drawable.sharapova));
-        dataSet.add(new PojoContact("Róża Pach","123456789",R.drawable.sharapova));
-        dataSet.add(new PojoContact("Anna Malinka","987654321",R.drawable.sharapova));
-        dataSet.add(new PojoContact("Stefania Mazdek","987654321",R.drawable.sharapova));
-        dataSet.add(new PojoContact("Eugenia Takze","987654321",R.drawable.sharapova));
-        dataSet.add(new PojoContact("Róża Pach","987654321",R.drawable.sharapova));
 
         rv = findViewById(R.id.contactsView);
 
         rv.setHasFixedSize(true);
-
+        new GetContacts().execute();
         rvLayout = new LinearLayoutManager(this);
         rv.setLayoutManager(rvLayout);
-
-        Log.d("debug","layout added");
-
-        rvAdapter = new ContactsAdapter(dataSet);
-        rv.setAdapter(rvAdapter);
-        Log.d("debug","adapter added");
 
         rvListener = new ContactsItemListener(getApplicationContext(),rv,new ContactsItemListener.ContactTouchListener(){
 
@@ -71,6 +63,8 @@ public class MainActivity extends AppCompatActivity {
         rv.addOnItemTouchListener(rvListener);
 
 
+
+
     }
 
     @Override
@@ -85,9 +79,40 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private class GetContacts extends AsyncTask<Void,Void,Void>{
-
+        private final String TAG = "GetContacts";
         @Override
         protected Void doInBackground(Void... voids) {
+            /**
+             * uzupelnij dataSet danymi sparsowanymi z JSON
+             */
+            Log.d(TAG,"Handler");
+            HttpHandler httpHandler = new HttpHandler();
+            String jsonString=httpHandler.makeServiceCall(url);
+            if(jsonString!=null){
+                try{
+                    Log.d(TAG,"overlooping array");
+                    JSONArray data = new JSONArray(jsonString);
+                    for(int i=0; i<data.length(); i++){
+                        JSONObject jsonContact = data.getJSONObject(i);
+                        String id = jsonContact.getString("id");
+                        String firstName = jsonContact.getString("firstName");
+                        String lastName = jsonContact.getString("lastName");
+                        String email=jsonContact.getString("email");
+                        String phone=jsonContact.getString("phone");
+                        String avatar=jsonContact.getString("avatar");
+
+                        PojoContact pojoContact = new PojoContact(firstName + " " + lastName, phone, R.drawable.sharapova);
+                        dataSet.add(pojoContact);
+
+                    }
+
+                }catch(JSONException e){
+                    Log.e("GetContacts", "JSONException");
+                    e.printStackTrace();
+                }
+            }else{
+                Log.e("GetContacts", "no JSON String");
+            }
             return null;
         }
 
@@ -102,7 +127,15 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(Void aVoid) {
+            /**
+             * Po tym jak dataSet zostanie uzupelnione w doInBackground, przypisz adepter
+             */
             super.onPostExecute(aVoid);
+            if(progressDialog.isShowing()){
+                progressDialog.dismiss();
+            }
+            rvAdapter= new ContactsAdapter(dataSet);
+            rv.setAdapter(rvAdapter);
         }
     }
 
